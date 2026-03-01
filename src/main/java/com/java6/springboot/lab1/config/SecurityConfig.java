@@ -2,10 +2,8 @@ package com.java6.springboot.lab1.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,13 +39,30 @@ public class SecurityConfig {
                 .requestMatchers("/poly/**").authenticated() // Bảo vệ các URL bắt đầu bằng /poly/
                         .anyRequest().permitAll()); // Các URL khác (như /) cho phép truy cập tự do
 // Form đăng nhập mặc định
-        http.formLogin(AbstractAuthenticationFilterConfigurer::permitAll);
-// Form đăng nhập
-        http.formLogin(AbstractAuthenticationFilterConfigurer::permitAll);
+        // 2. Tùy biến Form Login
+        http.formLogin(login -> login
+                .loginPage("/login/form")                // Link hiển thị form
+                .loginProcessingUrl("/login/check")      // Link xử lý login (khớp với form action) [cite: 216]
+                .defaultSuccessUrl("/login/success", true) // Thành công thì đi đâu
+                .failureUrl("/login/failure")            // Thất bại thì đi đâu
+                .usernameParameter("username")           // Tên input username
+                .passwordParameter("password")           // Tên input password
+                .permitAll()
+        );
+
 // Ghi nhớ tài khoản
-        http.rememberMe(config -> config.tokenValiditySeconds(3 * 24 * 60 * 60));
-// Đăng xuất
-        http.logout(Customizer.withDefaults());
+        http.rememberMe(rm -> rm
+                .tokenValiditySeconds(3 * 24 * 60 * 60) // 3 ngày
+                .rememberMeParameter("remember-me")     // Tên checkbox
+        );
+// Dang suat
+        http.logout(config -> {
+            config.logoutUrl("/logout");                // Đường dẫn kích hoạt đăng xuất [cite: 231]
+            config.logoutSuccessUrl("/login/exit");     // Thoát xong thì nhảy về LoginController với action 'exit'
+            config.clearAuthentication(true);           // Xóa thông tin xác thực
+            config.invalidateHttpSession(true);         // Hủy Session hiện tại
+            config.deleteCookies("remember-me");        // Xóa Cookie ghi nhớ
+        });
         return http.build();
     }
 
