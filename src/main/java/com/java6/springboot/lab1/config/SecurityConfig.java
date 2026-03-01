@@ -37,7 +37,9 @@ public class SecurityConfig {
 // Bỏ cấu hình mặc định CSRF và CORS
         http.csrf(AbstractHttpConfigurer::disable).cors(AbstractHttpConfigurer::disable);
 // Phân quyền sử dụng
-        http.authorizeHttpRequests(config -> config.anyRequest().permitAll());
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/poly/**").authenticated() // Bảo vệ các URL bắt đầu bằng /poly/
+                        .anyRequest().permitAll()); // Các URL khác (như /) cho phép truy cập tự do
 // Form đăng nhập mặc định
         http.formLogin(AbstractAuthenticationFilterConfigurer::permitAll);
 // Form đăng nhập
@@ -48,4 +50,5 @@ public class SecurityConfig {
         http.logout(Customizer.withDefaults());
         return http.build();
     }
+
 }
