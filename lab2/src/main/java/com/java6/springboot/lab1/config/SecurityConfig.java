@@ -11,11 +11,22 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+
+import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity // Thêm cái này để kích hoạt tính năng bảo mật web
 public class SecurityConfig {
+
+    final
+    DataSource dataSource;
+
+    public SecurityConfig(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
@@ -23,11 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(PasswordEncoder pe) {
-        String password = pe.encode("123");
-        UserDetails user1 = User.withUsername("user@gmail.com").password(password).roles("USER").build();
-        UserDetails user2 = User.withUsername("admin@gmail.com").password(password).roles("ADMIN").build();
-        UserDetails user3 = User.withUsername("both@gmail.com").password(password).roles("USER","ADMIN").build();
-        return new InMemoryUserDetailsManager(user1, user2, user3);
+        return new JdbcUserDetailsManager(dataSource);
     }
 
     @Bean
