@@ -1,4 +1,4 @@
-package com.kiemthunangcao.springboot.lab1;
+package com.java6.springboot.lab1.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
