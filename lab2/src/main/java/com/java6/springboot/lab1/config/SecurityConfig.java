@@ -5,12 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -20,11 +17,14 @@ import javax.sql.DataSource;
 @EnableWebSecurity // Thêm cái này để kích hoạt tính năng bảo mật web
 public class SecurityConfig {
 
+
+    final UserDetailsService userDetailsService; // Inject bean mà bạn đã định nghĩa (Dao hoặc Jdbc)
     final
     DataSource dataSource;
 
     public SecurityConfig(DataSource dataSource) {
         this.dataSource = dataSource;
+        this.userDetailsService = new JdbcUserDetailsManager(dataSource);
     }
 
     @Bean
@@ -67,6 +67,7 @@ public class SecurityConfig {
         http.rememberMe(rm -> rm
                 .tokenValiditySeconds(3 * 24 * 60 * 60) // 3 ngày
                 .rememberMeParameter("remember-me")     // Tên checkbox
+                .userDetailsService(userDetailsService)
         );
 // Dang suat
         http.logout(config -> {
