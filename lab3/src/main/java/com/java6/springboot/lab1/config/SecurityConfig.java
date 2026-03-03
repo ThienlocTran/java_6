@@ -22,6 +22,7 @@ public class SecurityConfig {
     final
     DataSource dataSource;
 
+
     public SecurityConfig(DataSource dataSource) {
         this.dataSource = dataSource;
         this.userDetailsService = new JdbcUserDetailsManager(dataSource);
@@ -39,6 +40,9 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        http.oauth2Login(login -> {
+            login.permitAll();
+        });
 // Bỏ cấu hình mặc định CSRF và CORS
         http.csrf(AbstractHttpConfigurer::disable).cors(AbstractHttpConfigurer::disable);
 // Phân quyền sử dụng
