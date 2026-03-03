@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+<a href="/">Home</a> |
+<a th:href="@{/poly/url1}">URL()</a> |
+<a th:href="@{/poly/url2}">URL()</a> |
+<a th:href="@{/poly/url3}">URL()</a> |
+<a th:href="@{/poly/url4}">URL()</a>
+
+<hr>
+<h1>Page: <b th:text="${message}" ></b> </h1>
+</body>
+</html>

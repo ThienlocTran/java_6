@@ -1,0 +1,41 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sinh viên</title>
+</head>
+<body>
+<h3>QUẢN LÝ SINH VIÊN</h3>
+<div>
+    <p> Id: <input id="id">
+    <p> Full Name: <input id="name">
+    <p> Everage Mark: <input id="mark">
+    <p> Gender:
+        <input name="gender" type="radio" id="male">Male
+        <input name="gender" type="radio" id="female">Female
+</div>
+<hr>
+<button onclick="$api.create()">Create</button>
+<button onclick="$api.update()">Update</button>
+<button onclick="$api.delete()">Delete</button>
+<button onclick="$api.reset()">Reset</button>
+<hr>
+<table border="1" style="width:100%">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Name</th>
+        <th>Mark</th>
+        <th>Gender</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody/> <--tbody chứa các <tr>-->
+</table>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script
+>
+<script src="student-crud.js"></script>
+</body>
+</html>
