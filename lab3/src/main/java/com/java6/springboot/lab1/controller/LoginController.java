@@ -25,7 +25,7 @@ public class LoginController {
         return "login"; // Trả về file login.html
     }
 
-    @RequestMapping("access-denied")
+    @RequestMapping("access/denied")
     public String denied(Model model) {
         model.addAttribute("message", "Bạn không có quyền truy cập trang này!");
         return "access-denied";
