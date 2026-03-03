@@ -5,10 +5,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
 @Service("daoAuth")
 public class DaoUserDetailsService implements UserDetailsService {
-    final
-    UserDAO userDAO;
+    final UserDAO userDAO;
 
     public DaoUserDetailsService(UserDAO userDAO) {
         this.userDAO = userDAO;
@@ -28,7 +28,7 @@ public class DaoUserDetailsService implements UserDetailsService {
             return org.springframework.security.core.userdetails.User
                     .withUsername(username)
                     .password(password)
-                    .roles(roles) // Chú ý: Nếu ID role đã có ROLE_ thì dùng authorities() thay vì roles()
+                    .authorities(roles) // Chú ý: Nếu ID role đã có ROLE_ thì dùng authorities() thay vì roles()
                     .build();
         } catch (Exception e) {
             throw new UsernameNotFoundException("User not found: " + username);

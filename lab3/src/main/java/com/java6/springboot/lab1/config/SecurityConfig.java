@@ -27,97 +27,99 @@ import javax.sql.DataSource;
 @EnableMethodSecurity // Kích hoạt @PreAuthorize cho Lab 3
 public class SecurityConfig {
 
-    private final DataSource dataSource;
+        private final DataSource dataSource;
+        private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+        public SecurityConfig(DataSource dataSource, UserDetailsService userDetailsService) {
+                this.dataSource = dataSource;
+                this.userDetailsService = userDetailsService;
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        }
 
-    // Định nghĩa UserDetailsService từ JDBC cho Lab 2 và Remember Me
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new JdbcUserDetailsManager(dataSource);
-    }
+        // Đã xóa cấu hình UserDetailsService bằng JDBC của Lab 2
+        // Thay vào đó, chúng ta sẽ bắt DI cho tham số UserDetailsService trong
+        // constructor
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        // 1. Cấu hình OAuth2 Login (Lab 3)
-        http.oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")
-                .successHandler((request, response, authentication) -> {
-                    // Lấy thông tin từ Google
-                    DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
-                    assert oidcUser != null;
-                    String email = oidcUser.getEmail();
-                    String role = "OAUTH";
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+                // 1. Cấu hình OAuth2 Login (Lab 3)
+                http.oauth2Login(oauth2 -> oauth2
+                                .loginPage("/login")
+                                .successHandler((request, response, authentication) -> {
+                                        // Lấy thông tin từ Google
+                                        DefaultOidcUser oidcUser = (DefaultOidcUser) authentication.getPrincipal();
+                                        assert oidcUser != null;
+                                        String email = oidcUser.getEmail();
+                                        String role = "OAUTH";
 
-                    // Tạo UserDetails ảo để Spring Security nhận diện quyền
-                    UserDetails newUser = User.withUsername(email)
-                            .password("{noop}")
-                            .roles(role)
-                            .build();
+                                        // Tạo UserDetails ảo để Spring Security nhận diện quyền
+                                        UserDetails newUser = User.withUsername(email)
+                                                        .password("{noop}")
+                                                        .roles(role)
+                                                        .build();
 
-                    // Ghi đè đối tượng Authentication hiện tại
-                    Authentication newAuth = new UsernamePasswordAuthenticationToken(
-                            newUser, null, newUser.getAuthorities());
-                    SecurityContextHolder.getContext().setAuthentication(newAuth);
+                                        // Ghi đè đối tượng Authentication hiện tại
+                                        Authentication newAuth = new UsernamePasswordAuthenticationToken(
+                                                        newUser, null, newUser.getAuthorities());
+                                        SecurityContextHolder.getContext().setAuthentication(newAuth);
 
-                    // Chuyển hướng về trang yêu cầu trước đó hoặc trang chủ
-                    HttpSession session = request.getSession();
-                    DefaultSavedRequest savedRequest = (DefaultSavedRequest)
-                            session.getAttribute("SPRING_SECURITY_SAVED_REQUEST");
-                    String redirectUrl = (savedRequest == null) ? "/" : savedRequest.getRedirectUrl();
-                    response.sendRedirect(redirectUrl);
-                })
-                .permitAll()
-        );
+                                        // Chuyển hướng về trang yêu cầu trước đó hoặc trang chủ
+                                        HttpSession session = request.getSession();
+                                        DefaultSavedRequest savedRequest = (DefaultSavedRequest) session
+                                                        .getAttribute("SPRING_SECURITY_SAVED_REQUEST");
+                                        String redirectUrl = (savedRequest == null) ? "/"
+                                                        : savedRequest.getRedirectUrl();
+                                        response.sendRedirect(redirectUrl);
+                                })
+                                .permitAll());
 
-        // 2. Bỏ qua CSRF và CORS cho môi trường học tập
-        http.csrf(AbstractHttpConfigurer::disable).cors(AbstractHttpConfigurer::disable);
+                // 2. Bỏ qua CSRF và CORS cho môi trường học tập
+                http.csrf(AbstractHttpConfigurer::disable).cors(AbstractHttpConfigurer::disable);
 
-        // 3. Phân quyền truy xuất (Lab 2)
-        // Lưu ý: Nếu dùng @PreAuthorize ở Controller thì có thể để .anyRequest().permitAll() ở đây
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/poly/url1").authenticated()
-                .requestMatchers("/poly/url2").hasRole("USER")
-                .requestMatchers("/poly/url3").hasRole("ADMIN")
-                .requestMatchers("/poly/url4").hasAnyRole("USER", "ADMIN")
-                .anyRequest().permitAll()
-        );
+                // 3. Phân quyền truy xuất (Lab 2)
+                // Lưu ý: Nếu dùng @PreAuthorize ở Controller thì có thể để
+                // .anyRequest().permitAll() ở đây
+                // http.authorizeHttpRequests(auth -> auth
+                // .requestMatchers("/poly/url1").authenticated()
+                // .requestMatchers("/poly/url2").hasRole("USER")
+                // .requestMatchers("/poly/url3").hasRole("ADMIN")
+                // .requestMatchers("/poly/url4").hasAnyRole("USER", "ADMIN")
+                // .anyRequest().permitAll()
+                // );
+                http.authorizeHttpRequests(auth -> auth
+                                .anyRequest().permitAll());
 
-        // 4. Xử lý từ chối truy cập
-        http.exceptionHandling(ex -> ex.accessDeniedPage("/access/denied"));
+                // 4. Xử lý từ chối truy cập
+                http.exceptionHandling(ex -> ex.accessDeniedPage("/access/denied"));
 
-        // 5. Cấu hình Form Login tùy biến
-        http.formLogin(login -> login
-                .loginPage("/login")
-                .loginProcessingUrl("/login/check")
-                .defaultSuccessUrl("/login/success", true)
-                .failureUrl("/login/failure")
-                .permitAll()
-        );
+                // 5. Cấu hình Form Login tùy biến
+                http.formLogin(login -> login
+                                .loginPage("/login")
+                                .loginProcessingUrl("/login/check")
+                                .defaultSuccessUrl("/login/success", true)
+                                .failureUrl("/login/failure")
+                                .permitAll());
 
-        // 6. Ghi nhớ đăng nhập (Remember Me)
-        http.rememberMe(rm -> rm
-                .tokenValiditySeconds(3 * 24 * 60 * 60) // 3 ngày
-                .rememberMeParameter("remember-me")
-                .userDetailsService(userDetailsService()) // Chỉ định rõ bean dịch vụ người dùng
-        );
+                // 6. Ghi nhớ đăng nhập (Remember Me)
+                http.rememberMe(rm -> rm
+                                .tokenValiditySeconds(3 * 24 * 60 * 60) // 3 ngày
+                                .rememberMeParameter("remember-me")
+                                .userDetailsService(userDetailsService) // Sử dụng UserDetailsService được inject (từ
+                                                                        // Lab 3)
+                );
 
-        // 7. Đăng xuất
-        http.logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login/exit")
-                .clearAuthentication(true)
-                .invalidateHttpSession(true)
-                .deleteCookies("remember-me")
-        );
+                // 7. Đăng xuất
+                http.logout(logout -> logout
+                                .logoutUrl("/logout")
+                                .logoutSuccessUrl("/login/exit")
+                                .clearAuthentication(true)
+                                .invalidateHttpSession(true)
+                                .deleteCookies("remember-me"));
 
-        return http.build();
-    }
+                return http.build();
+        }
 }

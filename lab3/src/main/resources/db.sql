@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS UserRoles;
 DROP TABLE IF EXISTS Authorities;
 DROP TABLE IF EXISTS Users;
 DROP TABLE IF EXISTS Roles;
-
+USE J6Security;
 -- 2. TẠO CẤU TRÚC BẢNG (Thứ tự: Cha trước - Con sau)
 CREATE TABLE Users (
                        Username VARCHAR(50) NOT NULL PRIMARY KEY,
@@ -48,3 +48,9 @@ INSERT INTO Roles(Id, Name) VALUES('ROLE_ADMIN', N'Quản lý');
 -- Bước C: Nhập Authorities (Cho Bài 2)
 INSERT INTO Authorities(Username, Authority) VALUES('user@gmail.com', 'ROLE_USER');
 INSERT INTO Authorities(Username, Authority) VALUES('admin@gmail.com', 'ROLE_ADMIN');
+
+-- Cấp quyền cho Bài 3 (Custom DAO)
+INSERT INTO UserRoles(Username, RoleId) VALUES('user@gmail.com', 'ROLE_USER');
+INSERT INTO UserRoles(Username, RoleId) VALUES('admin@gmail.com', 'ROLE_ADMIN');
+INSERT INTO UserRoles(Username, RoleId) VALUES('both@gmail.com', 'ROLE_USER');
+INSERT INTO UserRoles(Username, RoleId) VALUES('both@gmail.com', 'ROLE_ADMIN');
