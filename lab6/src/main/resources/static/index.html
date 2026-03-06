@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab 6 - Bài 5</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<h2>Test API với JWT và Axios</h2>
+
+<button onclick="login()">1. Đăng nhập</button>
+<button onclick="gotoUrl0()">2. Gọi URL 0</button>
+<button onclick="gotoUrl1()">3. Gọi URL 1</button>
+<button onclick="gotoUrl3()">4. Gọi URL 3</button>
+
+<script>
+    let token; // [cite: 199]
+
+    function login() { // [cite: 203]
+        const url = "http://localhost:8080/poly/login"; // [cite: 204]
+        const data = {
+            "username": "user@gmail.com", // [cite: 205]
+            "password": "123" // [cite: 206]
+        };
+
+
+        axios.post(url, data).then(resp => { // [cite: 208]
+            console.log("post() success", resp.data); // [cite: 209]
+            token = resp.data.token; //
+            alert("Đăng nhập thành công, đã lấy token!");
+        }).catch(error => { // [cite: 211]
+            console.log("post() error", error); // [cite: 214]
+        });
+    }
+
+    function gotoUrl0() { // [cite: 215]
+        const url = 'http://localhost:8080/poly/url0'; // [cite: 216]
+        axios.get(url).then(resp => { // [cite: 217]
+            console.log("get() success", resp.data); // [cite: 218]
+        }).catch(error => { // [cite: 219]
+            console.log("get() error", error); // [cite: 220]
+        });
+    }
+
+    function gotoUrl1() { // [cite: 223]
+        if (!token) {
+            alert("Ê khoan! Bạn chưa đăng nhập lấy Token mà, sao vào được?");
+            return;
+        }
+        const url = 'http://localhost:8080/poly/url1'; // [cite: 224]
+        const config = { // [cite: 225]
+            headers: { // [cite: 226]
+                "Authorization": 'Bearer ' + token // Đã fix cú pháp string nội suy [cite: 227]
+            }
+        };
+        axios.get(url, config).then(resp => { // [cite: 230]
+            console.log("get() success", resp.data); // [cite: 231]
+        }).catch(error => { // [cite: 232]
+            console.log("get() error", error); // [cite: 233]
+        });
+    }
+
+    function gotoUrl3() { // [cite: 236]
+        if (!token) {
+            alert("Khoan đã! Bạn phải đăng nhập trước!");
+            return;
+        }
+        const url = 'http://localhost:8080/poly/url3'; // [cite: 237]
+
+        const config = { // [cite: 238]
+
+            headers: { // [cite: 239]
+                "Authorization": 'Bearer ' + token // Đã fix cú pháp [cite: 240]
+            }
+        };
+        axios.get(url, config).then(resp => { // [cite: 243]
+            console.log("get() success", resp.data); // [cite: 250]
+        }).catch(error => { // [cite: 251]
+            console.log("get() error", error); // [cite: 252]
+        });
+    }
+</script>
+</body>
+</html>
