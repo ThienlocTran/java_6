@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Loại Hàng</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 10px; }
+        table { width: 50%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 5px 10px; margin-right: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h2>Quản Lý Loại Hàng</h2>
+
+    <div class="form-group">
+        <label>Mã loại (ID): </label>
+        <input type="text" v-model="form.id" :disabled="isEdit">
+    </div>
+    <div class="form-group">
+        <label>Tên loại (Name): </label>
+        <input type="text" v-model="form.name">
+    </div>
+
+    <button @click="create" v-if="!isEdit">Thêm mới</button>
+    <button @click="update" v-if="isEdit">Cập nhật</button>
+    <button @click="reset">Làm mới</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="cat in categories" :key="cat.id">
+            <td>{{ cat.id }}</td>
+            <td>{{ cat.name }}</td>
+            <td>
+                <button @click="edit(cat)">Sửa</button>
+                <button @click="remove(cat.id)">Xóa</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const { createApp } = Vue;
+    const api = "http://localhost:8080/api/categories";
+
+    createApp({
+        data() {
+            return {
+                categories: [],
+                form: { id: '', name: '' },
+                isEdit: false
+            }
+        },
+        mounted() {
+            this.loadData();
+        },
+        methods: {
+            loadData() {
+                axios.get(api).then(resp => {
+                    this.categories = resp.data;
+                });
+            },
+            reset() {
+                this.form = { id: '', name: '' };
+                this.isEdit = false;
+            },
+            edit(cat) {
+                this.form = Object.assign({}, cat);
+                this.isEdit = true;
+            },
+            create() {
+                axios.post(api, this.form).then(resp => {
+                    this.categories.push(resp.data);
+                    this.reset();
+                });
+            },
+            update() {
+                axios.put(`${api}/${this.form.id}`, this.form).then(resp => {
+                    let index = this.categories.findIndex(c => c.id === this.form.id);
+                    this.categories[index] = resp.data;
+                    this.reset();
+                });
+            },
+            remove(id) {
+                axios.delete(`${api}/${id}`).then(resp => {
+                    this.categories = this.categories.filter(c => c.id !== id);
+                });
+            }
+        }
+    }).mount('#app')
+</script>
+</body>
+</html>

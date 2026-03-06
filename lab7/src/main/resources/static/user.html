@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Người Dùng</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 10px; }
+        table { width: 80%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 5px 10px; margin-right: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h2>Quản Lý Người Dùng</h2>
+
+    <div class="form-group">
+        <label>Tên đăng nhập: </label>
+        <input type="text" v-model="form.username" :disabled="isEdit">
+    </div>
+    <div class="form-group">
+        <label>Mật khẩu: </label>
+        <input type="password" v-model="form.password">
+    </div>
+    <div class="form-group">
+        <label>Họ và tên: </label>
+        <input type="text" v-model="form.fullname">
+    </div>
+    <div class="form-group">
+        <label>Trạng thái: </label>
+        <input type="checkbox" v-model="form.enabled"> Hoạt động
+    </div>
+    <div class="form-group">
+        <label>Vai trò: </label>
+        <input type="radio" v-model="form.role" value="USER"> USER
+        <input type="radio" v-model="form.role" value="ADMIN"> ADMIN
+    </div>
+
+    <button @click="create" v-if="!isEdit">Thêm mới</button>
+    <button @click="update" v-if="isEdit">Cập nhật</button>
+    <button @click="reset">Làm mới</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Password</th>
+            <th>Họ và Tên</th>
+            <th>Trạng thái</th>
+            <th>Vai trò</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="u in users" :key="u.username">
+            <td>{{ u.username }}</td>
+            <td>{{ u.password }}</td>
+            <td>{{ u.fullname }}</td>
+            <td>{{ u.enabled ? 'Hoạt động' : 'Đã khóa' }}</td>
+            <td>{{ u.role }}</td>
+            <td>
+                <button @click="edit(u)">Sửa</button>
+                <button @click="remove(u.username)">Xóa</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const { createApp } = Vue;
+    const apiUser = "http://localhost:8080/api/users";
+
+    createApp({
+        data() {
+            return {
+                users: [],
+                form: { username: '', password: '', fullname: '', enabled: true, role: 'USER' },
+                isEdit: false
+            }
+        },
+        mounted() {
+            this.loadUsers();
+        },
+        methods: {
+            loadUsers() {
+                axios.get(apiUser).then(resp => {
+                    this.users = resp.data;
+                });
+            },
+            reset() {
+                this.form = { username: '', password: '', fullname: '', enabled: true, role: 'USER' };
+                this.isEdit = false;
+            },
+            edit(u) {
+                this.form = Object.assign({}, u);
+                this.isEdit = true;
+            },
+            create() {
+                axios.post(apiUser, this.form).then(resp => {
+                    this.users.push(resp.data);
+                    this.reset();
+                });
+            },
+            update() {
+                axios.put(`${apiUser}/${this.form.username}`, this.form).then(resp => {
+                    let index = this.users.findIndex(item => item.username === this.form.username);
+                    this.users[index] = resp.data;
+                    this.reset();
+                });
+            },
+            remove(username) {
+                axios.delete(`${apiUser}/${username}`).then(resp => {
+                    this.users = this.users.filter(item => item.username !== username);
+                });
+            }
+        }
+    }).mount('#app')
+</script>
+</body>
+</html>

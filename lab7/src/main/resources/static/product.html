@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản Lý Sản Phẩm</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 10px; }
+        table { width: 80%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 5px 10px; margin-right: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h2>Quản Lý Sản Phẩm</h2>
+
+    <div class="form-group">
+        <label>Tên sản phẩm: </label>
+        <input type="text" v-model="form.name">
+    </div>
+    <div class="form-group">
+        <label>Giá: </label>
+        <input type="number" v-model="form.price">
+    </div>
+    <div class="form-group">
+        <label>Loại hàng: </label>
+        <select v-model="form.category.id">
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                {{ cat.name }}
+            </option>
+        </select>
+    </div>
+
+    <button @click="create" v-if="!isEdit">Thêm mới</button>
+    <button @click="update" v-if="isEdit">Cập nhật</button>
+    <button @click="reset">Làm mới</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên Sản Phẩm</th>
+            <th>Giá</th>
+            <th>Ngày Nhập</th>
+            <th>Loại Hàng</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="p in products" :key="p.id">
+            <td>{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.price }}</td>
+            <td>{{ p.createDate }}</td>
+            <td>{{ p.category ? p.category.name : 'Không có' }}</td>
+            <td>
+                <button @click="edit(p)">Sửa</button>
+                <button @click="remove(p.id)">Xóa</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const { createApp } = Vue;
+    const apiProduct = "http://localhost:8080/api/products";
+    const apiCategory = "http://localhost:8080/api/categories";
+
+    createApp({
+        data() {
+            return {
+                products: [],
+                categories: [],
+                // Khởi tạo form với category là một object rỗng để hứng ID loại hàng
+                form: { id: null, name: '', price: 0, category: { id: '' } },
+                isEdit: false
+            }
+        },
+        mounted() {
+            this.loadCategories();
+            this.loadProducts();
+        },
+        methods: {
+            loadCategories() {
+                axios.get(apiCategory).then(resp => {
+                    this.categories = resp.data;
+                });
+            },
+            loadProducts() {
+                axios.get(apiProduct).then(resp => {
+                    this.products = resp.data;
+                });
+            },
+            reset() {
+                this.form = { id: null, name: '', price: 0, category: { id: '' } };
+                this.isEdit = false;
+            },
+            edit(p) {
+                // Sao chép object để tránh lỗi binding trực tiếp trên bảng
+                this.form = JSON.parse(JSON.stringify(p));
+                // Đảm bảo đối tượng category tồn tại để map vào dropdown
+                if(!this.form.category) this.form.category = { id: '' };
+                this.isEdit = true;
+            },
+            create() {
+                axios.post(apiProduct, this.form).then(resp => {
+                    this.products.push(resp.data);
+                    this.reset();
+                });
+            },
+            update() {
+                axios.put(`${apiProduct}/${this.form.id}`, this.form).then(resp => {
+                    let index = this.products.findIndex(p => p.id === this.form.id);
+                    this.products[index] = resp.data;
+                    this.reset();
+                });
+            },
+            remove(id) {
+                axios.delete(`${apiProduct}/${id}`).then(resp => {
+                    this.products = this.products.filter(p => p.id !== id);
+                });
+            }
+        }
+    }).mount('#app')
+</script>
+</body>
+</html>
