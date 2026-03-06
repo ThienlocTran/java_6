@@ -3,7 +3,7 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
-      <profile name="Annotation profile for lab7" enabled="true">
+      <profile name="Annotation profile for lab8" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -17,6 +17,7 @@
         <module name="lab1 (4)" />
         <module name="lab1 (5)" />
         <module name="lab7" />
+        <module name="lab8" />
         <module name="lab6" />
       </profile>
     </annotationProcessing>
@@ -31,6 +32,7 @@
       <module name="lab1 (5)" options="-parameters" />
       <module name="lab6" options="-parameters" />
       <module name="lab7" options="-parameters" />
+      <module name="lab8" options="-parameters" />
     </option>
   </component>
 </project>

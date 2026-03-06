@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Online Lab 8</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; padding-top: 50px; }
+        .chat-container { border: 4px solid #5bc0de; padding: 20px; width: 500px; border-radius: 5px; }
+        .header { display: flex; gap: 10px; margin-bottom: 20px; }
+        .header input { flex: 1; padding: 5px; }
+        .chat-box { border: 1px solid #ccc; height: 250px; overflow-y: auto; padding: 10px; margin-bottom: 20px; background: #f9f9f9; }
+        .input-area { display: flex; gap: 10px; }
+        .input-area input { flex: 1; padding: 5px; }
+        button { padding: 5px 15px; cursor: pointer; }
+        button:disabled { cursor: not-allowed; opacity: 0.6; }
+    </style>
+</head>
+<body>
+<div id="app" class="chat-container">
+    <div class="header">
+        <input type="text" v-model="username" placeholder="Nhập tên của bạn (VD: Thị Nở)" :disabled="connected">
+        <button @click="connect" :disabled="connected">Connect</button>
+        <button @click="disconnect" :disabled="!connected">Disconnect</button>
+    </div>
+
+    <h3>OUTPUT</h3>
+    <div class="chat-box">
+        <div v-for="(msg, index) in messages" :key="index">
+            <b>{{ msg.sender }}:</b> {{ msg.content }}
+        </div>
+    </div>
+
+    <h3>INPUT</h3>
+    <div class="input-area">
+        <label style="align-self: center;">Message:</label>
+        <input type="text" v-model="messageContent" @keyup.enter="sendMessage" :disabled="!connected" placeholder="Nhập tin nhắn...">
+        <button @click="sendMessage" :disabled="!connected">Send</button>
+    </div>
+</div>
+
+<script>
+    const { createApp } = Vue;
+    let stompClient = null;
+
+    createApp({
+        data() {
+            return {
+                username: '',
+                messageContent: '',
+                messages: [],
+                connected: false // Trạng thái dùng để bật/tắt các nút
+            }
+        },
+        methods: {
+            connect() {
+                if (!this.username.trim()) {
+                    alert("Vui lòng nhập tên để mọi người còn biết bạn là ai!");
+                    return;
+                }
+                const socket = new SockJS('http://localhost:8080/ws');
+                stompClient = Stomp.over(socket);
+
+                // Tắt bớt log của StompJS cho màn hình console đỡ rác
+                stompClient.debug = null;
+
+                stompClient.connect({}, this.onConnected, this.onError);
+            },
+            onConnected() {
+                this.connected = true;
+                // Đăng ký nhận tin nhắn từ kênh /topic/public
+                stompClient.subscribe('/topic/public', this.onMessageReceived);
+
+                // Gửi thông báo chào sân
+                stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({
+                    sender: this.username,
+                    type: 'JOIN',
+                    content: 'Đã tham gia nhóm chat!'
+                }));
+            },
+            onError(error) {
+                alert('Chưa bật Spring Boot hoặc lỗi mạng rồi!');
+            },
+            disconnect() {
+                if (stompClient !== null) {
+                    stompClient.send("/app/chat.sendMessage", {}, JSON.stringify({
+                        sender: this.username,
+                        type: 'LEAVE',
+                        content: 'Đã bỏ cuộc chơi!'
+                    }));
+                    stompClient.disconnect();
+                }
+                this.connected = false;
+            },
+            sendMessage() {
+                if (this.messageContent && stompClient) {
+                    const chatMessage = {
+                        sender: this.username,
+                        content: this.messageContent,
+                        type: 'CHAT'
+                    };
+                    stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessage));
+                    this.messageContent = '';
+                }
+            },
+            onMessageReceived(payload) {
+                const message = JSON.parse(payload.body);
+                this.messages.push(message);
+            }
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
