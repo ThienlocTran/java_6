@@ -3,9 +3,7 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-/lab3/src/main/resources/application.properties
-/lab4/src/main/resources/application.properties
-/lab5/src/main/resources/application.properties
+
 ### STS ###
 .apt_generated
 .classpath

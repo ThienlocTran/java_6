@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" xmlns:th = "http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Document</title>
+</head>
+<body>
+<div th:switch="${@auth.isAuthenticated()}">
+
+    <ul th:case="true">
+        <li>Username: <b>[[${@auth.getUsername()}]]</b></li>
+        <li>Roles: <b th:text="${@auth.getRoles()}"></b></li>
+        <li><a th:href="@{/logout}">Sign-out</a></li>
+
+        <li th:if="${@auth.hasAnyRole('ADMIN')}">
+            <a href="#">Goto Administration</a>
+        </li>
+    </ul>
+
+    <ul th:case="false">
+        <li>Bạn chưa đăng nhập</li>
+        <li><a th:href="@{/login/form}">Đăng nhập ngay</a></li>
+    </ul>
+</div>
+
+</body>
+</html>

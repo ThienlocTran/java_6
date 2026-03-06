@@ -15,6 +15,7 @@
         <module name="lab1 (3)" />
         <module name="lab1" />
         <module name="lab1 (4)" />
+        <module name="lab1 (5)" />
       </profile>
     </annotationProcessing>
   </component>
@@ -25,6 +26,7 @@
       <module name="lab1 (2)" options="-parameters" />
       <module name="lab1 (3)" options="-parameters" />
       <module name="lab1 (4)" options="-parameters" />
+      <module name="lab1 (5)" options="-parameters" />
     </option>
   </component>
 </project>
